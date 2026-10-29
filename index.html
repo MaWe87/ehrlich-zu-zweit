@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ehrlich zu zweit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3e6dc;--ink:#2a1f1c;--card:#fffaf5;--soft:#7a625a;--accent:#b4532a;--on-accent:#fff;--line:#dcc3b4;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10302e;--ink:#f6e9dc;--card:#1b4441;--soft:#a9c2bb;--accent:#eba23c;--on-accent:#2a1a05;--line:#2f5a56}}
+:root[data-theme="dark"]{--bg:#10302e;--ink:#f6e9dc;--card:#1b4441;--soft:#a9c2bb;--accent:#eba23c;--on-accent:#2a1a05;--line:#2f5a56}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.5 "Nunito Sans",system-ui,sans-serif;min-height:100vh}
+main{max-width:520px;margin:0 auto;padding:24px 20px 40px}
+h1,.q{font-family:Fraunces,Georgia,serif}
+h1{font-size:2.3rem;line-height:1.1;margin:12px 0 8px;font-weight:700}
+p.sub{color:var(--soft);margin:0 0 24px}
+label{display:block;font-weight:600;margin:14px 0 6px}
+input{width:100%;font:inherit;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 24px}
+.chip{font:inherit;font-weight:600;padding:9px 14px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn{font:inherit;font-weight:600;width:100%;padding:15px;border-radius:12px;border:0;background:var(--accent);color:var(--on-accent);cursor:pointer;font-size:1.05rem}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.row{display:flex;gap:10px;margin-top:12px}
+.top{display:flex;justify-content:space-between;align-items:center;color:var(--soft);font-size:.95rem}
+.top button{background:none;border:0;color:var(--soft);font:inherit;text-decoration:underline;cursor:pointer;padding:6px 0}
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:22px;padding:32px 26px;margin:18px 0;min-height:340px;display:flex;flex-direction:column;justify-content:space-between}
+.cat{font-weight:600;color:var(--accent);font-size:.95rem}
+.q{font-size:1.65rem;line-height:1.3;font-weight:500;margin:22px 0}
+.turn{color:var(--soft);border-top:1px solid var(--line);padding-top:14px;font-size:.98rem}
+.turn b{color:var(--ink)}
+.card.flip{animation:fl .28s ease-out}
+@keyframes fl{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.card.flip{animation:none}}
+.fav{background:none;border:0;font-size:1.7rem;line-height:1;color:var(--accent);cursor:pointer;padding:4px 6px}
+.cathead{display:flex;justify-content:space-between;align-items:center}
+.own{display:flex;gap:8px}.own input{flex:1}.own .btn{width:auto;padding:12px 16px}
+.card.sp{border:2px solid var(--accent)}
+textarea{width:100%;font:inherit;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);resize:vertical}
+#rev .a,#loglist .a{background:var(--card);border:1.5px solid var(--accent);border-radius:14px;padding:12px 14px;margin-top:10px}#rev b,#loglist b{display:block;color:var(--accent)}#loglist p{margin:6px 0 0}#loglist{margin-bottom:20px}
+.btn:disabled{opacity:.5}
+.hide{display:none}
+.hint{color:var(--soft);font-size:.9rem;margin-top:14px}
+</style>
+</head>
+<body>
+<main>
+<section id="start">
+<h1>Ehrlich zu zweit</h1>
+<p class="sub">Ein Fragenspiel für euch beiden. Zieht eine Karte, antwortet nacheinander, hört wirklich zu. Jede Frage darf auch übersprungen werden.</p>
+<label for="n1">Name von Spieler 1</label><input id="n1" maxlength="20" placeholder="z. B. Markus" autocomplete="off">
+<label for="n2">Name von Spieler 2</label><input id="n2" maxlength="20" placeholder="z. B. deine Frau" autocomplete="off">
+<label>Themen</label>
+<div class="chips" id="chips"></div>
+<label>Tiefe</label>
+<div class="chips" id="lv"></div>
+<button class="btn hide" id="resume" type="button" style="margin-bottom:10px"></button>
+<button class="btn" id="go">Spiel starten</button>
+<button class="btn ghost hide" id="favgo" style="margin-top:10px"></button>
+<button class="btn ghost hide" id="logbtn" type="button" style="margin-top:10px"></button>
+<label for="own">Eigene Frage hinzufügen</label>
+<div class="own"><input id="own" maxlength="140" placeholder="Eure eigene Frage"><button class="btn ghost" id="addq" type="button">Hinzufügen</button></div>
+<p class="hint" id="ownmsg"></p>
+<label>Auf zwei Handys spielen</label>
+<p class="hint" style="margin-top:0">Eine Person erstellt einen Raum und schickt der anderen den Code. Themen und Tiefe der Person, die erstellt, gelten für beide. Euren eigenen Namen tragt ihr jeweils oben bei „Spieler 1“ ein.</p>
+<button class="btn ghost" id="mk" type="button">Raum erstellen</button>
+<div class="own" style="margin-top:10px"><input id="jc" maxlength="8" placeholder="Code der anderen Person" autocapitalize="off" autocomplete="off"><button class="btn ghost" id="jn" type="button">Beitreten</button></div>
+<label>Ohne Online: gleicher Stapel auf zwei Handys</label>
+<p class="hint" style="margin-top:0">Eine Person erstellt einen Code und liest ihn vor. Beide geben ihn ein, tragen die Namen in gleicher Reihenfolge ein und tippen gemeinsam auf „Nächste Karte“.</p>
+<button class="btn ghost" id="cmk" type="button">Code erstellen und starten</button>
+<div class="own" style="margin-top:10px"><input id="cin" maxlength="7" placeholder="Code (7 Zeichen)" autocapitalize="off" autocomplete="off"><button class="btn ghost" id="cgo" type="button">Starten</button></div>
+<p class="hint">Gespielt wird am besten auf einem Handy, das ihr euch weiterreicht. Auf der Karte wischen blättert weiter, das Herz merkt sich Lieblingsfragen.</p>
+</section>
+
+<section id="game" class="hide">
+<div class="top"><span id="count"></span><button id="home">Pause</button></div>
+<div class="card" id="card">
+<div><div class="cathead"><div class="cat" id="cat"></div><button class="fav" id="fav" type="button"></button></div><p class="q" id="q"></p></div>
+<div class="turn" id="turn"></div>
+</div>
+<div id="notebox" class="hide"><textarea id="note" rows="2" maxlength="280" placeholder="Eigene Notiz zu dieser Frage, nur auf diesem Handy"></textarea></div>
+<div id="olbox" class="hide"><textarea id="ans" rows="3" maxlength="280" placeholder="Deine Antwort, optional. Sie bleibt verdeckt, bis ihr beide gesperrt habt."></textarea><button class="btn" id="lock" type="button" style="margin-top:10px">Antwort sperren</button><div id="rev" class="hide"></div><p class="hint" id="st"></p></div>
+<div class="row"><button class="btn ghost" id="prev">Zurück</button><button class="btn" id="next">Nächste Karte</button></div>
+</section>
+
+<section id="log" class="hide"><h1>Rückblick</h1><p class="sub">Eure gespeicherten Antworten und Notizen. Sie liegen nur auf diesem Handy.</p><div id="loglist"></div><button class="btn" id="logback" type="button">Zurück</button><button class="btn ghost" id="logdel" type="button" style="margin-top:10px">Rückblick löschen</button></section>
+<section id="wait" class="hide"><h1 id="code"></h1><p class="sub" id="wmsg"></p><p class="hint">Schickt der anderen Person diesen Code. Sie öffnet dieselbe Seite und gibt ihn unter „Auf zwei Handys spielen“ ein. Am besten telefoniert ihr dabei.</p><button class="btn ghost" id="wl" type="button" style="margin-top:16px">Abbrechen</button></section>
+<section id="end" class="hide">
+<h1>Stapel durchgespielt</h1>
+<p class="sub">Das waren alle Fragen der gewählten Themen. Mischt neu oder wählt andere Themen.</p>
+<button class="btn" id="again">Neu mischen</button>
+<div class="row"><button class="btn ghost" id="home2">Themen ändern</button></div>
+</section>
+</main>
+<script>
+var CATS={
+"Wir zwei":[
+"Woran denkst du als Erstes, wenn du an unseren Anfang denkst?",
+"Was hat dich an mir zuerst angezogen, ohne dass du es mir je gesagt hast?",
+"Welche gemeinsame Erinnerung holst du an schlechten Tagen hervor?",
+"Was machen wir zusammen besser als jedes andere Paar, das du kennst?",
+"Welche Angewohnheit von mir findest du heimlich liebenswert?",
+"Wann hast du dich zuletzt richtig mit mir verbunden gefühlt?",
+"Was war der beste Urlaubsmoment, den wir je hatten?",
+"Welches Lied erinnert dich an uns?",
+"Was hast du von mir gelernt, das dein Leben verändert hat?",
+"Welchen Spleen von mir hast du inzwischen selbst übernommen?",
+"Was würdest du an unserem ersten Jahr heute anders machen?",
+"Wofür bist du mir am dankbarsten, ohne dass ich es weiß?",
+"Welcher Satz von mir hat dir einmal sehr geholfen?",
+"Wie würdest du unsere Beziehung in drei Worten beschreiben?",
+"Welches kleine Ritual zwischen uns würdest du nie hergeben?"],
+"Gefühle":[
+"Wann hast du dich zuletzt unverstanden gefühlt, und wie kann ich dich dann besser abholen?",
+"Was brauchst du, wenn es dir schlecht geht: Nähe, Ruhe oder Ablenkung?",
+"Wovor hast du manchmal Angst, über das du selten sprichst?",
+"Worauf bist du in letzter Zeit stolz, ohne dass es jemand gemerkt hat?",
+"Was macht dich schneller wütend, als du es gern wärst?",
+"Wann fühlst du dich am meisten wie du selbst?",
+"Welches Gefühl fällt dir am schwersten zu zeigen?",
+"Was hat dich zuletzt zum Weinen oder fast zum Weinen gebracht?",
+"Wann hast du dich zuletzt richtig frei gefühlt?",
+"Was machst du, um dich zu beruhigen, und möchtest du dabei manchmal Gesellschaft?",
+"Worüber ärgerst du dich im Stillen, ohne es anzusprechen?",
+"Welche Situation macht dich nervös, obwohl andere sie locker nehmen?",
+"Was würdest du deinem jüngeren Ich über Gefühle sagen?",
+"Wann fühlst du dich einsam, auch wenn andere da sind?",
+"Welche Entscheidung in deinem Leben bereust du am wenigsten?"],
+"Alltag":[
+"Welche Aufgabe im Haushalt würdest du am liebsten komplett abgeben?",
+"Wie sieht für dich ein perfekter Sonntag zu zweit aus?",
+"Was stört dich im Alltag, das du bisher nicht sagen wolltest?",
+"Wann fühlst du dich von mir wirklich unterstützt?",
+"Wie viel Zeit für dich allein brauchst du pro Woche, damit es dir gut geht?",
+"Wie sollen wir mit Streit umgehen, wenn einer von uns müde oder gestresst ist?",
+"Welche Gewohnheit sollten wir als Paar neu einführen?",
+"Welche Gewohnheit sollten wir gemeinsam ablegen?",
+"Wie wichtig ist dir Ordnung, und wo darf es ruhig chaotisch sein?",
+"Was war die beste Entscheidung, die wir im letzten Jahr getroffen haben?",
+"Wofür geben wir deiner Meinung nach zu viel oder zu wenig Geld aus?",
+"Wie fühlst du dich mit der Aufteilung von Arbeit und Freizeit bei uns?",
+"Wie können wir abends besser zur Ruhe kommen?",
+"Welches Essen sollten wir viel öfter gemeinsam kochen?",
+"Was wünschst du dir von unserem Alltag mehr: Spontanität oder Planung?"],
+"Träume":[
+"Wo möchtest du in zehn Jahren wohnen, und wie sieht dein Tag dort aus?",
+"Welchen Traum hast du zurückgestellt, und was würde es brauchen, ihn anzugehen?",
+"Was möchten wir unbedingt noch gemeinsam erleben?",
+"Wenn Geld keine Rolle spielte, wie würdest du dein nächstes Jahr gestalten?",
+"Welche Fähigkeit würdest du gern lernen, und würdest du sie gern mit mir lernen?",
+"Wie soll sich unser Zuhause in fünf Jahren anfühlen?",
+"Welches Land oder welche Stadt wolltest du schon immer sehen?",
+"Was soll am Ende deines Lebens über dich gesagt werden?",
+"Welche berufliche Veränderung könntest du dir vorstellen?",
+"Wie soll unsere Beziehung in zwanzig Jahren aussehen?",
+"Welches Abenteuer würdest du morgen wagen, wenn du keine Angst hättest?",
+"Was wünschst du dir für unser nächstes Jahr als Paar?",
+"Welches Projekt würden wir zusammen starten, wenn wir einen freien Monat hätten?",
+"Welchen Ort wollen wir uns als gemeinsames Ziel setzen?",
+"Was möchtest du in deinem Leben auf keinen Fall verpassen?"],
+"Nähe":[
+"Wann fühlst du dich mir am nächsten?",
+"Welche Geste von mir bedeutet dir mehr, als ich ahne?",
+"Was könnte ich öfter tun, damit du dich begehrt fühlst?",
+"Welche Art von Berührung magst du im Alltag am liebsten?",
+"Wie können wir mehr ungestörte Zeit nur für uns schaffen?",
+"Was war der schönste Moment der Zärtlichkeit zwischen uns?",
+"Was wünschst du dir mehr von unserem gemeinsamen Abend: Gespräche, Nähe oder Lachen?",
+"Worüber würdest du gern offener mit mir sprechen?",
+"Wie zeigst du Liebe, und wie erkenne ich sie am besten?",
+"Wie möchtest du, dass ich dir sage, dass ich dich liebe?",
+"Welches Kompliment hörst du von mir zu selten?",
+"Was macht dir Lust auf mich?",
+"Wann hast du zuletzt an mich gedacht und gelächelt?",
+"Welche gemeinsame Zeit fehlt dir gerade am meisten?",
+"Was würde unsere Verbindung in einem Satz stärker machen?"],
+"Tiefgang":[
+"Welcher Wert ist dir im Leben am wichtigsten, und wo lebst du ihn zu wenig?",
+"Wann hast du zuletzt etwas getan, das nicht leicht war, aber richtig?",
+"Was bedeutet für dich ein gutes Leben?",
+"Welche Entscheidung hat dich am meisten geprägt?",
+"Woran glaubst du, auch wenn du es nicht beweisen kannst?",
+"Was möchtest du an dir verändern, und was an dir ist gut so?",
+"Wem hast du noch nicht vergeben, und was würde es dir bringen?",
+"Welchen Fehler hast du gemacht, der dich weitergebracht hat?",
+"Was ist für dich wichtiger: Sicherheit oder Freiheit?",
+"Welche Frage, die du dir selbst stellst, möchtest du mit mir teilen?",
+"Was hat dich dein Elternhaus über Beziehungen gelehrt, gut wie schlecht?",
+"Wofür würdest du alles stehen und liegen lassen?",
+"Was würdest du tun, wenn du nur noch ein Jahr hättest?",
+"Wo erkennst du mich in dir selbst wieder?",
+"Welche Wahrheit über uns fällt dir schwer auszusprechen, ist aber wichtig?"],
+"Leicht & lustig":[
+"Welche Superkraft würdest du dir für unseren Alltag wünschen?",
+"Was war dein peinlichster Moment, über den du heute lachen kannst?",
+"Welchen Film könntest du hundertmal sehen, und warum?",
+"Wenn wir ein Duo in einer Serie wären, wie hießen wir?",
+"Welche Marotte von dir überrascht mich noch immer?",
+"Was würdest du mit einer Million Euro in 24 Stunden anstellen?",
+"Welches Tier wärst du, und welches bin ich?",
+"Welche Mahlzeit würdest du für den Rest deines Lebens essen?",
+"Was war das Mutigste, das du als Kind getan hast?",
+"Welchen Song singst du heimlich unter der Dusche?",
+"Welcher Promi dürfte für einen Abend bei uns zu Gast sein?",
+"Was ist das Verrückteste, das wir zusammen erlebt haben?",
+"In welcher Epoche hättest du gern gelebt?",
+"Welche unnötige Sache hast du zuletzt gekauft und trotzdem geliebt?",
+"Welches Hobby würdest du ausprobieren, wenn dich keiner auslacht?"]
+};
+var $=function(i){return document.getElementById(i)};
+var names=["Spieler 1","Spieler 2"],sel={},deck=[],pos=0,favs=[],own=[],lastFav=false,maxLv=2,RND=Math.random;
+var LV={"Wir zwei":"001001002012110","Gefühle":"112010220021121","Alltag":"001112010011000","Träume":"010000021110001","Nähe":"112101021102012","Tiefgang":"211212211221212","Leicht & lustig":"000000000000000"};
+var LVN=["Locker","Ausgewogen","Auch tief"];
+var NF=["Frag nach: Was genau hat sich dabei für dich angefühlt?","Wiederhole in eigenen Worten, was du gerade gehört hast. Stimmt es?","Frag nach: Gibt es dazu eine Erinnerung, die du noch nicht erzählt hast?","Sag, was dich an der Antwort berührt oder überrascht hat.","Frag nach: Was würdest du dir dazu von mir wünschen?","Frag nach: Wann ist dir das zum ersten Mal bewusst geworden?","Frag: Möchtest du dazu noch etwas sagen, das bisher fehlt?","Bedanke dich für die Antwort und nenne einen Satz, der dir hängen geblieben ist."];
+var AB=["Was nimmst du aus dieser Runde mit?","Was hat dich an den Antworten des anderen am meisten überrascht?","Sagt euch je einen Satz, für den ihr dem anderen heute dankbar seid.","Was möchtest du dem anderen noch sagen, wozu bisher die Gelegenheit fehlte?","Welche Frage dieser Runde möchtet ihr bald vertiefen?","Was wünschst du dir für die nächsten Tage von uns beiden?"];
+function pool(ok){var r=[];Object.keys(CATS).forEach(function(c){if(!ok(c))return;CATS[c].forEach(function(q,i){var l=(c==="Eigene"||!LV[c])?0:+LV[c].charAt(i);if(l<=maxLv)r.push({c:c,q:q})})});return r}
+function withSpecials(a){var f=shuffle(NF.slice()),s=shuffle(AB.slice()),r=[],n=0,fi=0,si=0;a.forEach(function(d,i){d.n=n++;r.push(d);var k=i+1;if(k%10===0)r.push({c:"Zum Abschluss",q:s[si++%s.length],s:2});else if(k%4===0&&k<a.length)r.push({c:"Nachfrage",q:f[fi++%f.length],s:1})});if(a.length%10!==0)r.push({c:"Zum Abschluss",q:s[si++%s.length],s:2});return r}
+function buildLv(){var b=$("lv");b.innerHTML="";LVN.forEach(function(n,i){var x=document.createElement("button");x.className="chip";x.type="button";x.textContent=n;x.setAttribute("aria-pressed",maxLv===i?"true":"false");x.onclick=function(){maxLv=i;store("lv",String(i));buildLv()};b.appendChild(x)})}
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+function show(id){["start","game","end","wait","log"].forEach(function(s){$(s).classList.toggle("hide",s!==id)})}
+function buildChips(){var box=$("chips");box.innerHTML="";Object.keys(CATS).forEach(function(c){
+var b=document.createElement("button");b.className="chip";b.type="button";b.textContent=c;
+b.setAttribute("aria-pressed",sel[c]?"true":"false");
+b.onclick=function(){sel[c]=!sel[c];b.setAttribute("aria-pressed",sel[c]?"true":"false")};box.appendChild(b)})}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(RND()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function start(onlyFavs){lastFav=onlyFavs===true;deckCode="";
+var n1=$("n1").value.trim(),n2=$("n2").value.trim();
+names=[n1||"Spieler 1",n2||"Spieler 2"];store("names",JSON.stringify([n1,n2]));
+deck=pool(function(c){return sel[c]});
+if(!deck.length){Object.keys(CATS).forEach(function(c){sel[c]=true});buildChips();deck=pool(function(){return true})}
+if(lastFav){deck=[];Object.keys(CATS).forEach(function(c){CATS[c].forEach(function(q){if(favs.indexOf(q)>-1)deck.push({c:c,q:q})})})}
+shuffle(deck);deck=withSpecials(deck);pos=0;show("game");render()}
+function render(){
+var d=deck[pos];$("cat").textContent=d.c;$("q").textContent=d.q;
+$("card").classList.toggle("sp",!!d.s);
+if(d.s){$("turn").textContent=d.s===1?"Für die Person, die gerade zugehört hat.":"Beide antworten, nacheinander."}else{$("turn").innerHTML="Zuerst antwortet <b></b>. Danach die andere Person.";$("turn").querySelector("b").textContent=names[d.n%2]}
+$("count").textContent="Karte "+(pos+1)+" von "+deck.length+(deckCode?" · Code "+deckCode.toUpperCase():"");setFav();if(!online){saveGame();var lg=getLog().filter(function(x){return x.q===d.q})[0];$("notebox").classList.toggle("hide",!!d.s);$("note").value=(lg&&lg.note)?String(lg.a[0][1]):""}else $("notebox").classList.add("hide");
+$("prev").disabled=pos===0;$("prev").style.opacity=pos===0?".45":"1";
+var c=$("card");c.classList.remove("flip");void c.offsetWidth;c.classList.add("flip")}
+function setFav(){$("fav").classList.toggle("hide",!!deck[pos].s);var on=favs.indexOf(deck[pos].q)>-1;$("fav").textContent=on?"♥":"♡";$("fav").setAttribute("aria-label",on?"Lieblingsfrage entfernen":"Als Lieblingsfrage markieren")}
+function favBtn(){var n=favs.length;$("favgo").classList.toggle("hide",!n);$("favgo").textContent="Nur Lieblingsfragen spielen ("+n+")"}
+function loadOwn(){if(own.length){CATS["Eigene"]=own;if(sel["Eigene"]===undefined)sel["Eigene"]=true;buildChips()}}
+$("fav").onclick=function(){var q=deck[pos].q,i=favs.indexOf(q);if(i>-1)favs.splice(i,1);else favs.push(q);store("favs",JSON.stringify(favs));setFav();favBtn()};
+$("favgo").onclick=function(){start(true)};
+$("addq").onclick=function(){var v=$("own").value.trim();if(!v)return;own.push(v);store("own",JSON.stringify(own));$("own").value="";loadOwn();$("ownmsg").textContent="Hinzugefügt. Eure Fragen findet ihr unter „Eigene“."};
+var sx=0;$("card").addEventListener("touchstart",function(e){sx=e.changedTouches[0].clientX},{passive:true});
+$("card").addEventListener("touchend",function(e){var d=e.changedTouches[0].clientX-sx;if(d<-60)$("next").click();else if(d>60)$("prev").click()},{passive:true});
+var online=false,room=null,unsub=null,builtSeed=null,olCur=-1,myText="",code="";
+function seeded(s){return function(){s|=0;s=s+1831565813|0;var t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function mkCode(){var s="abcdefghjkmnpqrstuvwxyz23456789",r="";for(var i=0;i<4;i++)r+=s.charAt(Math.floor(Math.random()*s.length));return r}
+function pres(p){return room?room.presence(p).catch(function(){}):0}
+function olBuild(cfg){var om=maxLv,or=RND;maxLv=+cfg.lv||0;RND=seeded(+cfg.seed||1);var cats=Array.isArray(cfg.cats)?cfg.cats:[];var a=pool(function(c){return c!=="Eigene"&&cats.indexOf(c)>-1});shuffle(a);deck=withSpecials(a);maxLv=om;RND=or}
+function olPeers(){var ps=room.peers().filter(function(p){return p.kind==="viewer"});return{me:ps.filter(function(p){return p.sameTab})[0],ot:ps.filter(function(p){return !p.isMe})[0]}}
+function olLeave(msg){if(unsub)unsub();unsub=null;if(room)room.leave().catch(function(){});room=null;online=false;builtSeed=null;olCur=-1;$("prev").classList.remove("hide");$("olbox").classList.add("hide");show("start");$("ownmsg").textContent=msg||""}
+function olNext(){if(olCur>=deck.length-1){olLeave("Stapel durchgespielt. Erstellt einen neuen Raum für eine weitere Runde.");return}pres({pos:olCur+1,ready:null,rv:null,ans:null})}
+function olRender(){
+if(!room)return;var o=olPeers(),me=o.me,ot=o.ot,mp=me?me.presence:{},op=ot?ot.presence:{},cfg=mp.cfg||op.cfg;
+if(!cfg||!ot){show("wait");$("code").textContent=code.toUpperCase();$("wmsg").textContent=cfg?"Warte auf die andere Person …":"Warte auf den Host …";return}
+if(builtSeed!==cfg.seed){olBuild(cfg);builtSeed=cfg.seed;olCur=-1}
+var cur=Math.max(+mp.pos||0,+op.pos||0),hn=String((mp.cfg?mp.name:op.name)||"Spieler 1").slice(0,20),gn=String((mp.cfg?op.name:mp.name)||"Spieler 2").slice(0,20);
+if(cur>=deck.length)cur=deck.length-1;
+if(cur!==olCur){olCur=cur;pos=cur;names=[hn,gn];myText="";$("ans").value="";$("ans").disabled=false;$("lock").disabled=false;show("game");render();pres({pos:cur,ready:null,rv:null,ans:null})}else show("game");
+var d=deck[cur],sp=!!d.s,both=!!(mp.ready&&op.ready&&mp.pos===cur&&op.pos===cur);
+$("olbox").classList.toggle("hide",sp);
+if(!sp&&both&&!mp.rv)pres({ans:myText,rv:true});
+var rev=!sp&&both&&!!mp.rv&&!!op.rv,on=String(op.name||"die andere Person").slice(0,20),r=$("rev");
+r.classList.toggle("hide",!rev);r.innerHTML="";
+if(rev){[[String(mp.name||"Du").slice(0,20),myText],[on,String(op.ans||"")]].forEach(function(x){var a=document.createElement("div"),b=document.createElement("b"),t=document.createElement("div");a.className="a";b.textContent=x[0];t.textContent=x[1]||"Ohne Text beantwortet";a.appendChild(b);a.appendChild(t);r.appendChild(a)})}
+if(rev&&loggedCur!==cur){loggedCur=cur;putLog(d.q,d.c,[[String(mp.name||"Du").slice(0,20),myText],[on,String(op.ans||"")]])}
+$("st").textContent=(!sp&&!rev&&mp.ready)?"Warte auf "+on+" …":"";
+$("next").disabled=!(sp||rev)}
+async function olStart(host){
+if(!window.claude||!claude.use){$("ownmsg").textContent="Online spielen geht nur in der geöffneten Claude-Seite.";return}
+var R=null;try{R=await claude.use("room")}catch(e){}
+if(!R){$("ownmsg").textContent="Online spielen ist hier nicht verfügbar. Die Seite muss für euch beide freigegeben sein.";return}
+code=host?mkCode():$("jc").value.toLowerCase().replace(/[^a-z0-9]/g,"");
+if(code.length<4){$("ownmsg").textContent="Bitte den Code der anderen Person eingeben.";return}
+try{room=await R.join("ehrlich-"+code)}catch(e){room=null;$("ownmsg").textContent="Beitritt nicht möglich. Seid ihr beide eingeloggt und freigegeben?";return}
+online=true;loggedCur=-1;var nm=($("n1").value.trim()||(host?"Spieler 1":"Spieler 2")).slice(0,20),p={name:nm};
+if(host){var cats=Object.keys(CATS).filter(function(c){return sel[c]&&c!=="Eigene"});if(!cats.length)cats=Object.keys(CATS).filter(function(c){return c!=="Eigene"});p.cfg={seed:1+Math.floor(Math.random()*2147483000),cats:cats,lv:maxLv}}
+$("prev").classList.add("hide");unsub=room.onPeers(olRender);await pres(p);olRender()}
+var deckCode="";
+function CK(){return Object.keys(CATS).filter(function(c){return c!=="Eigene"})}
+function hashS(s){var h=7;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return Math.abs(h)+1}
+function codeMake(){var s="abcdefghjkmnpqrstuvwxyz23456789",r="";for(var i=0;i<4;i++)r+=s.charAt(Math.floor(Math.random()*s.length));var ks=CK(),m=0;ks.forEach(function(c,i){if(sel[c])m|=1<<i});if(!m)m=(1<<ks.length)-1;var h=m.toString(16);if(h.length<2)h="0"+h;return r+h+maxLv}
+function codeStart(code){
+code=(code||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+var ks=CK(),m=parseInt(code.substr(4,2),16),lv=parseInt(code.charAt(6),10),cats=ks.filter(function(c,i){return (m>>i)&1});
+if(code.length!==7||isNaN(m)||isNaN(lv)||lv>2||!cats.length){$("ownmsg").textContent="Dieser Code passt nicht. Er hat 7 Zeichen.";return}
+var a=$("n1").value.trim(),b=$("n2").value.trim();names=[a||"Spieler 1",b||"Spieler 2"];store("names",JSON.stringify([a,b]));
+olBuild({seed:hashS(code.substr(0,4)),cats:cats,lv:lv});lastFav=false;deckCode=code;pos=0;show("game");render()}
+function saveGame(){store("save",JSON.stringify({d:deck,p:pos,n:names,c:deckCode}))}
+function getSave(){try{var s=JSON.parse(store("save")||"null");if(s&&Array.isArray(s.d)&&s.d.length&&s.p>=0&&s.p<s.d.length&&Array.isArray(s.n)&&s.d[s.p]&&s.d[s.p].q)return s}catch(e){}return null}
+function resumeBtn(){var s=getSave(),b=$("resume");b.classList.toggle("hide",!s);if(s)b.textContent="Spiel fortsetzen (Karte "+(s.p+1)+" von "+s.d.length+")"}
+$("resume").onclick=function(){var s=getSave();if(!s)return;deck=s.d;pos=s.p;names=[String(s.n[0]),String(s.n[1])];deckCode=s.c||"";lastFav=false;show("game");render()};
+resumeBtn();
+var loggedCur=-1,delArm=false;
+function getLog(){try{var l=JSON.parse(store("log")||"[]");return Array.isArray(l)?l:[]}catch(e){return[]}}
+function putLog(q,c,a,note){var l=getLog().filter(function(x){return x.q!==q});if(a)l.unshift({q:q,c:c,a:a,note:note?1:0,t:Date.now()});store("log",JSON.stringify(l.slice(0,200)));logBtn()}
+function logBtn(){var n=getLog().length,b=$("logbtn");b.classList.toggle("hide",!n);b.textContent="Rückblick ansehen ("+n+")"}
+function showLog(){var l=getLog(),box=$("loglist");box.innerHTML="";delArm=false;$("logdel").textContent="Rückblick löschen";l.forEach(function(x){var d=document.createElement("div"),b=document.createElement("b");d.className="a";b.textContent=String(x.q);d.appendChild(b);(Array.isArray(x.a)?x.a:[]).forEach(function(r){var p=document.createElement("p");p.textContent=String(r[0])+": "+(String(r[1]||"")||"Ohne Text beantwortet");d.appendChild(p)});box.appendChild(d)});show("log")}
+$("logbtn").onclick=showLog;$("logback").onclick=function(){show("start")};
+$("logdel").onclick=function(){if(!delArm){delArm=true;$("logdel").textContent="Wirklich alles löschen? Nochmal tippen.";return}store("log","[]");logBtn();show("start")};
+$("note").oninput=function(){var d=deck[pos];if(!d||d.s||online)return;var t=$("note").value.trim();putLog(d.q,d.c,t?[["Notiz",t]]:null,1)};
+logBtn();
+$("cmk").onclick=function(){codeStart(codeMake())};
+$("cgo").onclick=function(){codeStart($("cin").value)};
+$("mk").onclick=function(){olStart(true)};$("jn").onclick=function(){olStart(false)};$("wl").onclick=function(){olLeave("")};
+$("lock").onclick=function(){myText=$("ans").value.trim();$("ans").disabled=true;$("lock").disabled=true;pres({pos:olCur,ready:true})};
+$("go").onclick=start;
+$("again").onclick=function(){start(lastFav)};
+$("next").onclick=function(){if(online){olNext();return}if(pos<deck.length-1){pos++;render()}else{store("save","");resumeBtn();show("end")}};
+$("prev").onclick=function(){if(pos>0){pos--;render()}};
+$("home").onclick=function(){if(online)olLeave("");else{resumeBtn();show("start")}};
+$("home2").onclick=function(){show("start")};
+Object.keys(CATS).forEach(function(c){sel[c]=true});
+buildChips();
+try{favs=JSON.parse(store("favs")||"[]");own=JSON.parse(store("own")||"[]")}catch(e){favs=[];own=[]}
+loadOwn();favBtn();var lv=parseInt(store("lv"),10);if(lv>=0&&lv<=2)maxLv=lv;buildLv();
+try{var s=JSON.parse(store("names")||"[]");if(s[0])$("n1").value=s[0];if(s[1])$("n2").value=s[1]}catch(e){}
+</script>
+</body>
+</html>
